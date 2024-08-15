@@ -147,11 +147,10 @@ document.addEventListener("DOMContentLoaded", () => {
     editUserForm.addEventListener("submit", (event) => {
         event.preventDefault();
 
-        const formData = new FormData(editUserForm);
         const data = {
-            name: formData.get("name"),
-            email: formData.get("email"),
-            birth_date: formData.get("birth_date"),
+            name: document.querySelector("#editUserName").value,
+            email: document.querySelector("#editUserEmail").value,
+            birth_date: document.querySelector("#editUserBirthDate").value,
         };
 
         fetch(`${baseUrl}/${editUserId}`, {
@@ -170,7 +169,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 throw new Error("Failed to update user");
             })
             .then(() => {
-                window.location.reload();
+                editModal.style.display = "none";
+                fetchUsers();
             })
             .catch((error) => {
                 console.error("Error:", error);
@@ -198,7 +198,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 throw new Error("Failed to delete user");
             })
             .then(() => {
-                window.location.reload();
+                deleteModal.style.display = "none";
+                fetchUsers();
             })
             .catch((error) => {
                 console.error("Error:", error);
