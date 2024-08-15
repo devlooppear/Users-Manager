@@ -7,9 +7,11 @@
         border-radius: 5px;
         margin: 15px 0px;
     }
+
     .table .btn {
         margin: 0 2px;
     }
+
     .modal-overlay {
         position: fixed;
         top: 0;
@@ -21,16 +23,28 @@
         align-items: center;
         justify-content: center;
     }
+
     .modal-content {
+        width: 90vw;
         background: white;
         padding: 20px;
         border-radius: 5px;
         text-align: center;
-        max-width: 90vw;
+        max-width: 500px;
     }
+
     .modal-content .btn {
         margin: 10px auto;
         max-width: 250px;
+    }
+
+    .button-group {
+        display: flex;
+        gap: 5px;
+    }
+
+    .button-group .btn {
+        margin: 0;
     }
 </style>
 <div class="container mt-4">
@@ -61,7 +75,7 @@
     </nav>
 </div>
 
-<!-- Modal Structure -->
+<!-- Modal de Exclusão -->
 <div id="deleteModal" class="modal-overlay">
     <div class="modal-content">
         <p>Tem certeza de que deseja deletar?</p>
@@ -70,5 +84,31 @@
     </div>
 </div>
 
-<script src="{{ asset('js/users/list-users.js') }}"></script>
+<!-- Modal de Edição -->
+<div id="editModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>Editar Usuário</h3>
+        <form id="editUserForm">
+            <input type="hidden" id="editUserId">
+            <div class="form-group">
+                <label for="editUserName">Nome:</label>
+                <input type="text" id="editUserName" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="editUserEmail">Email:</label>
+                <input type="email" id="editUserEmail" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="editUserBirthDate">Data de Nascimento:</label>
+                <input type="date" id="editUserBirthDate" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Salvar</button>
+                <button type="button" id="cancelEdit" class="btn btn-secondary">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="{{ asset('js/users/users.js') }}"></script>
 @endsection
