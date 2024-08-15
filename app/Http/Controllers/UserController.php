@@ -7,6 +7,8 @@ use App\Http\Requests\UserUpdateRequest;
 use App\Repositories\UserRepository;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
+use Exception;
 
 class UserController extends Controller
 {
@@ -30,13 +32,18 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $perPage = $request->input('per_page', 15);
-        $searchColumn = $request->input('search_column');
-        $searchValue = $request->input('search_value');
+        try {
+            $perPage = $request->input('per_page', 15);
+            $searchColumn = $request->input('search_column');
+            $searchValue = $request->input('search_value');
 
-        $users = $this->userRepository->paginate($perPage, $searchColumn, $searchValue);
+            $users = $this->userRepository->paginate($perPage, $searchColumn, $searchValue);
 
-        return response()->json($users);
+            return response()->json($users);
+        } catch (Exception $e) {
+            Log::error('Error fetching user list: ' . $e->getMessage());
+            return response()->json(['message' => 'Error fetching user list'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
@@ -47,13 +54,17 @@ class UserController extends Controller
      */
     public function store(UserCreateRequest $request)
     {
-        $validated = $request->validated();
+        try {
+            $validated = $request->validated();
+            $validated['password'] = bcrypt($validated['password']);
 
-        $validated['password'] = bcrypt($validated['password']);
+            $user = $this->userRepository->create($validated);
 
-        $user = $this->userRepository->create($validated);
-
-        return response()->json($user, Response::HTTP_CREATED);
+            return response()->json($user, Response::HTTP_CREATED);
+        } catch (Exception $e) {
+            Log::error('Error creating user: ' . $e->getMessage());
+            return response()->json(['message' => 'Error creating user'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
@@ -64,13 +75,18 @@ class UserController extends Controller
      */
     public function show(int $id)
     {
-        $user = $this->userRepository->find($id);
+        try {
+            $user = $this->userRepository->find($id);
 
-        if (!$user) {
-            return response()->json(['message' => 'User not found'], Response::HTTP_NOT_FOUND);
+            if (!$user) {
+                return response()->json(['message' => 'User not found'], Response::HTTP_NOT_FOUND);
+            }
+
+            return response()->json($user);
+        } catch (Exception $e) {
+            Log::error('Error fetching user: ' . $e->getMessage());
+            return response()->json(['message' => 'Error fetching user'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-
-        return response()->json($user);
     }
 
     /**
@@ -82,19 +98,24 @@ class UserController extends Controller
      */
     public function update(UserUpdateRequest $request, int $id)
     {
-        $validated = $request->validated();
+        try {
+            $validated = $request->validated();
 
-        if (isset($validated['password'])) {
-            $validated['password'] = bcrypt($validated['password']);
+            if (isset($validated['password'])) {
+                $validated['password'] = bcrypt($validated['password']);
+            }
+
+            $user = $this->userRepository->update($id, $validated);
+
+            if (!$user) {
+                return response()->json(['message' => 'User not found'], Response::HTTP_NOT_FOUND);
+            }
+
+            return response()->json($user);
+        } catch (Exception $e) {
+            Log::error('Error updating user: ' . $e->getMessage());
+            return response()->json(['message' => 'Error updating user'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-
-        $user = $this->userRepository->update($id, $validated);
-
-        if (!$user) {
-            return response()->json(['message' => 'User not found'], Response::HTTP_NOT_FOUND);
-        }
-
-        return response()->json($user);
     }
 
     /**
@@ -105,12 +126,17 @@ class UserController extends Controller
      */
     public function destroy(int $id)
     {
-        $success = $this->userRepository->delete($id);
+        try {
+            $success = $this->userRepository->delete($id);
 
-        if (!$success) {
-            return response()->json(['message' => 'User not found'], Response::HTTP_NOT_FOUND);
+            if (!$success) {
+                return response()->json(['message' => 'User not found'], Response::HTTP_NOT_FOUND);
+            }
+
+            return response()->json(null, Response::HTTP_NO_CONTENT);
+        } catch (Exception $e) {
+            Log::error('Error deleting user: ' . $e->getMessage());
+            return response()->json(['message' => 'Error deleting user'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-
-        return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }
