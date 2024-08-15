@@ -12,7 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->append(\App\Http\Middleware\RedirectIfNotAuthenticated::class);
+        $middleware->group('web', [
+            \App\Http\Middleware\RedirectIfNotAuthenticated::class
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
