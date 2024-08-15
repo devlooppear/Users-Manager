@@ -7,13 +7,19 @@
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <title>@yield('title', 'Users Manager')</title>
+    <style>
+        .index-container{
+            min-height: 70vh;
+        }
+    </style>
 </head>
 
 <body>
-@include('common.navbar')
-    <div class="container mt-5 pt-3">
+    @include('common.navbar')
+    <div class="container mt-5 pt-3 index-container">
         @yield('content')
     </div>
+    @include('common.footer')
 
     <script src="{{ asset('js/app.js') }}"></script>
     <script src="{{ asset('js/auth/auth-middleware.js') }}"></script>
