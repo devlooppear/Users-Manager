@@ -10,13 +10,14 @@
     <style>
         .index-container{
             min-height: 70vh;
+            padding-top: 6em;
         }
     </style>
 </head>
 
 <body>
     @include('common.navbar')
-    <div class="container mt-5 pt-3 index-container">
+    <div class="container index-container">
         @yield('content')
     </div>
     @include('common.footer')
