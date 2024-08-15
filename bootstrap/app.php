@@ -13,7 +13,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->group('web', [
-            \App\Http\Middleware\RedirectIfNotAuthenticated::class
+        ]);
+        $middleware->group('api', [
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
