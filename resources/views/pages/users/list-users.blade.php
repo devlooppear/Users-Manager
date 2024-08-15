@@ -7,6 +7,31 @@
         border-radius: 5px;
         margin: 15px 0px;
     }
+    .table .btn {
+        margin: 0 2px;
+    }
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+    }
+    .modal-content {
+        background: white;
+        padding: 20px;
+        border-radius: 5px;
+        text-align: center;
+        max-width: 90vw;
+    }
+    .modal-content .btn {
+        margin: 10px auto;
+        max-width: 250px;
+    }
 </style>
 <div class="container mt-4">
     <h2>Listagem de Usuários</h2>
@@ -22,6 +47,7 @@
                     <th>Email Verificado</th>
                     <th>Criado Em</th>
                     <th>Atualizado Em</th>
+                    <th>Ações</th>
                 </tr>
             </thead>
             <tbody>
@@ -35,98 +61,14 @@
     </nav>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const usersTableBody = document.querySelector('#users-table tbody');
-        const pagination = document.querySelector('#pagination');
-        const baseUrl = `${window.location.origin}/api/users`;
+<!-- Modal Structure -->
+<div id="deleteModal" class="modal-overlay">
+    <div class="modal-content">
+        <p>Tem certeza de que deseja deletar?</p>
+        <button id="confirmDelete" class="btn btn-danger">Sim</button>
+        <button id="cancelDelete" class="btn btn-secondary">Não</button>
+    </div>
+</div>
 
-        window.fetchUsers = function(page = 1) {
-            fetch(`${baseUrl}?page=${page}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-                },
-                credentials: 'include'
-            })
-            .then(response => response.json())
-            .then(data => {
-                renderTable(data.data);
-                renderPagination(data);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        };
-
-        function formatDate(dateString) {
-            const options = { year: 'numeric', month: 'long', day: 'numeric' };
-            return new Date(dateString).toLocaleDateString(undefined, options);
-        }
-
-        function renderTable(users) {
-            usersTableBody.innerHTML = '';
-            users.forEach(user => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${user.id}</td>
-                    <td>${user.name}</td>
-                    <td>${user.email}</td>
-                    <td>${formatDate(user.birth_date)}</td>
-                    <td>${user.email_verified_at ? formatDate(user.email_verified_at) : 'Não Verificado'}</td>
-                    <td>${formatDate(user.created_at)}</td>
-                    <td>${formatDate(user.updated_at)}</td>
-                `;
-                usersTableBody.appendChild(row);
-            });
-        }
-
-        function renderPagination(data) {
-            pagination.innerHTML = '';
-
-            if (data.prev_page_url) {
-                pagination.innerHTML += `
-                    <li class="page-item">
-                        <a class="page-link" href="#" onclick="fetchUsers(${data.current_page - 1}); return false;" aria-label="Previous">
-                            <span aria-hidden="true">&laquo; Anterior</span>
-                        </a>
-                    </li>
-                `;
-            } else {
-                pagination.innerHTML += `
-                    <li class="page-item disabled">
-                        <span class="page-link">&laquo; Anterior</span>
-                    </li>
-                `;
-            }
-
-            for (let i = 1; i <= data.last_page; i++) {
-                pagination.innerHTML += `
-                    <li class="page-item ${data.current_page === i ? 'active' : ''}">
-                        <a class="page-link" href="#" onclick="fetchUsers(${i}); return false;">${i}</a>
-                    </li>
-                `;
-            }
-
-            if (data.next_page_url) {
-                pagination.innerHTML += `
-                    <li class="page-item">
-                        <a class="page-link" href="#" onclick="fetchUsers(${data.current_page + 1}); return false;" aria-label="Next">
-                            <span aria-hidden="true">Próximo &raquo;</span>
-                        </a>
-                    </li>
-                `;
-            } else {
-                pagination.innerHTML += `
-                    <li class="page-item disabled">
-                        <span class="page-link">Próximo &raquo;</span>
-                    </li>
-                `;
-            }
-        }
-
-        fetchUsers();
-    });
-</script>
+<script src="{{ asset('js/users/list-users.js') }}"></script>
 @endsection
