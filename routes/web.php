@@ -8,7 +8,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/users', function () {
-    return view('pages.users.users');
+    return view('pages.users.index');
 })->name('users');
 
 Route::get('/login', function () {

@@ -13,23 +13,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const baseUrl = `${window.location.origin}/api/users`;
 
-    window.fetchUsers = function (page = 1) {
-        fetch(`${baseUrl}?page=${page}`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-            },
-            credentials: "include",
-        })
-            .then((response) => response.json())
-            .then((data) => {
-                renderTable(data.data);
-                renderPagination(data);
-            })
-            .catch((error) => {
-                console.error("Error:", error);
+    window.fetchUsers = async function (page = 1) {
+        try {
+            const response = await fetch(`${baseUrl}?page=${page}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+                },
+                credentials: "include",
             });
+
+            if (!response.ok) {
+                throw new Error(`Network response was not ok: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            renderTable(data.data);
+            renderPagination(data);
+        } catch (error) {
+            console.error("Error fetching users:", error);
+        }
     };
 
     function formatDate(dateString) {
@@ -56,12 +60,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td>${formatDate(user.updated_at)}</td>
                 <td>
                     <div class="button-group">
-                        <button class="btn btn-primary btn-sm" onclick="showEditModal(${
-                            user.id
-                        })">Editar</button>
-                        <button class="btn btn-danger btn-sm" onclick="showDeleteModal(${
-                            user.id
-                        })">Deletar</button>
+                        <button class="btn btn-primary btn-sm" onclick="showEditModal(${user.id})">Editar</button>
+                        <button class="btn btn-danger btn-sm" onclick="showDeleteModal(${user.id})">Deletar</button>
                     </div>
                 </td>
             `;
@@ -75,9 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (data.prev_page_url) {
             pagination.innerHTML += `
                 <li class="page-item">
-                    <a class="page-link" href="#" onclick="fetchUsers(${
-                        data.current_page - 1
-                    }); return false;" aria-label="Previous">
+                    <a class="page-link" href="#" onclick="fetchUsers(${data.current_page - 1}); return false;" aria-label="Previous">
                         <span aria-hidden="true">&laquo; Anterior</span>
                     </a>
                 </li>
@@ -92,9 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         for (let i = 1; i <= data.last_page; i++) {
             pagination.innerHTML += `
-                <li class="page-item ${
-                    data.current_page === i ? "active" : ""
-                }">
+                <li class="page-item ${data.current_page === i ? "active" : ""}">
                     <a class="page-link" href="#" onclick="fetchUsers(${i}); return false;">${i}</a>
                 </li>
             `;
@@ -103,9 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (data.next_page_url) {
             pagination.innerHTML += `
                 <li class="page-item">
-                    <a class="page-link" href="#" onclick="fetchUsers(${
-                        data.current_page + 1
-                    }); return false;" aria-label="Next">
+                    <a class="page-link" href="#" onclick="fetchUsers(${data.current_page + 1}); return false;" aria-label="Next">
                         <span aria-hidden="true">Próximo &raquo;</span>
                     </a>
                 </li>
@@ -119,32 +113,31 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    window.showEditModal = function (userId) {
+    window.showEditModal = async function (userId) {
         editUserId = userId;
 
-        fetch(`${baseUrl}/${userId}`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-            },
-            credentials: "include",
-        })
-            .then((response) => response.json())
-            .then((user) => {
-                document.querySelector("#editUserId").value = user.id;
-                document.querySelector("#editUserName").value = user.name;
-                document.querySelector("#editUserEmail").value = user.email;
-                document.querySelector("#editUserBirthDate").value =
-                    user.birth_date;
-                editModal.style.display = "flex";
-            })
-            .catch((error) => {
-                console.error("Error:", error);
+        try {
+            const response = await fetch(`${baseUrl}/${userId}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+                },
+                credentials: "include",
             });
+
+            const user = await response.json();
+            document.querySelector("#editUserId").value = user.id;
+            document.querySelector("#editUserName").value = user.name;
+            document.querySelector("#editUserEmail").value = user.email;
+            document.querySelector("#editUserBirthDate").value = user.birth_date;
+            editModal.style.display = "flex";
+        } catch (error) {
+            console.error("Error fetching user details:", error);
+        }
     };
 
-    editUserForm.addEventListener("submit", (event) => {
+    editUserForm.addEventListener("submit", async (event) => {
         event.preventDefault();
 
         const data = {
@@ -153,28 +146,26 @@ document.addEventListener("DOMContentLoaded", () => {
             birth_date: document.querySelector("#editUserBirthDate").value,
         };
 
-        fetch(`${baseUrl}/${editUserId}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-            },
-            credentials: "include",
-            body: JSON.stringify(data),
-        })
-            .then((response) => {
-                if (response.ok) {
-                    return response.json();
-                }
-                throw new Error("Failed to update user");
-            })
-            .then(() => {
-                editModal.style.display = "none";
-                fetchUsers();
-            })
-            .catch((error) => {
-                console.error("Error:", error);
+        try {
+            const response = await fetch(`${baseUrl}/${editUserId}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+                },
+                credentials: "include",
+                body: JSON.stringify(data),
             });
+
+            if (!response.ok) {
+                throw new Error("Failed to update user");
+            }
+
+            editModal.style.display = "none";
+            fetchUsers();
+        } catch (error) {
+            console.error("Error updating user:", error);
+        }
     });
 
     window.showDeleteModal = function (userId) {
@@ -182,28 +173,26 @@ document.addEventListener("DOMContentLoaded", () => {
         deleteModal.style.display = "flex";
     };
 
-    confirmDelete.addEventListener("click", () => {
-        fetch(`${baseUrl}/${deleteUserId}`, {
-            method: "DELETE",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-            },
-            credentials: "include",
-        })
-            .then((response) => {
-                if (response.ok) {
-                    return response.json();
-                }
-                throw new Error("Failed to delete user");
-            })
-            .then(() => {
-                deleteModal.style.display = "none";
-                fetchUsers();
-            })
-            .catch((error) => {
-                console.error("Error:", error);
+    confirmDelete.addEventListener("click", async () => {
+        try {
+            const response = await fetch(`${baseUrl}/${deleteUserId}`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+                },
+                credentials: "include",
             });
+
+            if (!response.ok) {
+                throw new Error("Failed to delete user");
+            }
+
+            deleteModal.style.display = "none";
+            fetchUsers();
+        } catch (error) {
+            console.error("Error deleting user:", error);
+        }
     });
 
     cancelDelete.addEventListener("click", () => {
